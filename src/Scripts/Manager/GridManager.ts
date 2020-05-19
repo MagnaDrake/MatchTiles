@@ -120,25 +120,25 @@ export default class GridManager {
 
       if (pickedTile != null) {
         if (this.selectedTile == null) {
-          //console.log(pickedTile);
+          console.log("isbomb: " + pickedTile.isBomb);
           pickedTile.setScale(1.2);
           pickedTile.setDepth(1);
           this.selectedTile = pickedTile;
         } else {
-          console.log("i hab tile");
+          //console.log("i hab tile");
           if (this.areTheSame(pickedTile, this.selectedTile)) {
-            console.log("is same");
+            //console.log("is same");
 
             this.selectedTile.setScale(1);
             this.selectedTile = null;
           } else {
             if (this.areNext(pickedTile, this.selectedTile)) {
-              console.log("swap");
+              //console.log("swap");
 
               this.selectedTile.setScale(1);
               this.swapTiles(this.selectedTile, pickedTile, true);
             } else {
-              console.log("nein");
+              //console.log("nein");
 
               this.selectedTile.setScale(1);
               pickedTile.setScale(1.2);
@@ -241,7 +241,7 @@ export default class GridManager {
   }
 
   handleMatches() {
-    console.log(this);
+    //console.log(this);
 
     this.removalMap = new Array<Array<number>>();
     for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
@@ -263,7 +263,21 @@ export default class GridManager {
       let currentColor = -1;
       let startStreak = 0;
       let colorToWatch = 0;
+      let isBomb = false;
+      let bombed = false;
+      let bombCoord = [];
       for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
+        if (!isBomb) {
+          isBomb = this.tileAt(i, j).isBomb;
+          console.log("update bomb: " + isBomb);
+          if (isBomb) {
+            bombCoord[0] = i;
+            bombCoord[1] = j;
+            console.log(bombCoord);
+          }
+        }
+        //console.log(isBomb);
+
         if (direction == GameOptions.HORIZONTAL) {
           colorToWatch = this.tileAt(i, j).color;
         } else {
@@ -271,9 +285,9 @@ export default class GridManager {
         }
 
         if (colorToWatch == currentColor) {
-          console.log("found streak");
+          //console.log("found streak");
           colorStreak++;
-          console.log(colorToWatch + " " + colorStreak);
+          //console.log(colorToWatch + " " + colorStreak);
         }
 
         if (
@@ -281,8 +295,28 @@ export default class GridManager {
           j == GameOptions.OPTIONS.fieldSize - 1
         ) {
           if (colorStreak >= 3) {
+            console.log("i haz bomb: " + isBomb);
+
             let placedBomb: boolean = false;
             for (let k = 0; k < colorStreak; k++) {
+              if (isBomb && !bombed) {
+                console.log("IS BOMB");
+                for (let o = bombCoord[0] - 1; o <= bombCoord[0] + 1; o++) {
+                  for (let p = bombCoord[1] - 1; p <= bombCoord[1] + 1; p++) {
+                    console.log(o + " " + p);
+                    if (
+                      o >= 0 &&
+                      o < GameOptions.OPTIONS.fieldSize &&
+                      p >= 0 &&
+                      p < GameOptions.OPTIONS.fieldSize
+                    ) {
+                      console.log("I AM BOMBING");
+                      this.removalMap[o][p]++;
+                    }
+                  }
+                }
+              }
+
               if (direction == GameOptions.HORIZONTAL) {
                 if (colorStreak > 3 && !placedBomb) {
                   console.log("ay bomb");
@@ -304,6 +338,8 @@ export default class GridManager {
           startStreak = j;
           colorStreak = 1;
           currentColor = colorToWatch;
+          //isBomb = false;
+          //bombed = false;
         }
       }
     }
