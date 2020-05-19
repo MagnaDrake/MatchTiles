@@ -60,7 +60,7 @@ export default class GridManager {
         this.tileGroup.add(tile);
         let count = 0;
         do {
-          console.log("init cycle: " + count);
+          //console.log("init cycle: " + count);
           let randomColor = Phaser.Math.Between(
             0,
             GameOptions.OPTIONS.tileColors - 1
@@ -98,7 +98,7 @@ export default class GridManager {
       col < 0 ||
       col >= GameOptions.OPTIONS.fieldSize
     ) {
-      console.log("es null");
+      //console.log("es null");
       return null;
     }
     return this.gridArray[row][col];
@@ -209,15 +209,15 @@ export default class GridManager {
       duration: GameOptions.OPTIONS.swapSpeed,
       callbackScope: this,
       onComplete: () => {
-        console.log(this);
+        //console.log(this);
         this.swappingTiles--;
         if (this.swappingTiles == 0) {
           if (!this.matchInGrid() && swapBack) {
             this.swapTiles(tile1, tile2, false);
           } else {
             if (this.matchInGrid()) {
-              console.log("tween tile");
-              console.log(this);
+              //console.log("tween tile");
+              //console.log(this);
               this.handleMatches();
             } else {
               this.canPick = true;
@@ -271,6 +271,7 @@ export default class GridManager {
         }
 
         if (colorToWatch == currentColor) {
+          console.log("found streak");
           colorStreak++;
           console.log(colorToWatch + " " + colorStreak);
         }
@@ -280,10 +281,22 @@ export default class GridManager {
           j == GameOptions.OPTIONS.fieldSize - 1
         ) {
           if (colorStreak >= 3) {
+            let placedBomb: boolean = false;
             for (let k = 0; k < colorStreak; k++) {
               if (direction == GameOptions.HORIZONTAL) {
+                if (colorStreak > 3 && !placedBomb) {
+                  console.log("ay bomb");
+                  this.removalMap[i][startStreak + k]++;
+                  placedBomb = true;
+                }
                 this.removalMap[i][startStreak + k]++;
               } else {
+                if (colorStreak > 3 && !placedBomb) {
+                  console.log("ay bomb");
+
+                  this.removalMap[startStreak + k][i]++;
+                  placedBomb = true;
+                }
                 this.removalMap[startStreak + k][i]++;
               }
             }
@@ -302,9 +315,13 @@ export default class GridManager {
     //console.log("la destroya");
     for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
       for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
-        if (this.removalMap[i][j] > 0) {
+        let marker: number = this.removalMap[i][j];
+        //console.log("hey " + marker);
+        if (marker > 0) {
           destroyed++;
           let targetTile = this.gridArray[i][j];
+          //console.log(marker);
+
           this.scene.tweens.add({
             targets: targetTile,
             alpha: 0.5,
@@ -312,19 +329,36 @@ export default class GridManager {
             callbackScope: this,
             onComplete: () => {
               destroyed--;
-              targetTile.setVisible(false);
-              this.poolArray.push(targetTile);
-              console.log(targetTile);
+              if (marker <= 1) {
+                this.poolArray.push(targetTile);
+                targetTile.setVisible(false);
+                targetTile.isBomb = false;
+              } else {
+                this.addBombOnGrid(i, j, targetTile);
+              }
+              //console.log(targetTile);
+              //console.log(marker);
               if (destroyed <= 0) {
                 this.dropTiles();
                 this.replenishGrid();
               }
             },
           });
-          this.gridArray[i][j] = null;
+          if (marker <= 1) {
+            this.gridArray[i][j] = null;
+          }
         }
       }
     }
+  }
+
+  addBombOnGrid(i: number, j: number, targetTile: Tile) {
+    console.log(targetTile.color);
+    this.gridArray[i][j] = targetTile;
+
+    //this.gridArray[i][j].setVisible(true);
+    this.gridArray[i][j].alpha = 1;
+    this.gridArray[i][j].isBomb = true;
   }
 
   dropTiles() {
@@ -367,7 +401,7 @@ export default class GridManager {
           //console.log(emptySpots);
           //console.log(i);
           rep++;
-          console.log("replenish counter: " + rep);
+          //console.log("replenish counter: " + rep);
           let randomColor = Phaser.Math.Between(
             0,
             GameOptions.OPTIONS.tileColors - 1
@@ -392,13 +426,13 @@ export default class GridManager {
             callbackScope: this,
             onComplete: () => {
               rep--;
-              console.log("oncomplete inside replenish: " + this);
+              //console.log("oncomplete inside replenish: " + this);
 
-              console.log("callback rep: " + rep);
+              //console.log("callback rep: " + rep);
               if (rep == 0) {
                 if (this.matchInGrid()) {
-                  console.log("aug");
-                  console.log(this);
+                  //console.log("aug");
+                  //console.log(this);
                   this.scene.time.addEvent({
                     delay: 250,
                     callback: () => {
