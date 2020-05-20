@@ -21,7 +21,9 @@ export default class GridManager {
 
   private scene: Phaser.Scene;
 
-  private removalMap: Array<Array<number>>;
+  //private removalMap: Array<Array<number>>;
+
+  private removalMap: Array<Array<{ counter: number; exploded: boolean }>>;
 
   public static get Instance() {
     return this.instance || (this.instance = new GridManager());
@@ -243,17 +245,23 @@ export default class GridManager {
   handleMatches() {
     //console.log(this);
 
-    this.removalMap = new Array<Array<number>>();
+    //this.removalMap = new Array<Array<number>>();
+    this.removalMap = new Array<
+      Array<{ counter: number; exploded: boolean }>
+    >();
+
     for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
-      let arr = new Array<number>();
+      //let arr = new Array<number>();
+      let arr = new Array<{ counter: number; exploded: boolean }>();
       this.removalMap.push(arr);
       for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
-        this.removalMap[i].push(0);
+        this.removalMap[i].push({ counter: 0, exploded: false });
       }
     }
 
     this.markMatches(GameOptions.HORIZONTAL);
     this.markMatches(GameOptions.VERTICAL);
+    this.handleBombs();
     this.destroyTiles();
   }
 
@@ -263,19 +271,8 @@ export default class GridManager {
       let currentColor = -1;
       let startStreak = 0;
       let colorToWatch = 0;
-      let isBomb = false;
-      let bombed = false;
-      let bombCoord = [];
+
       for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
-        if (!isBomb) {
-          isBomb = this.tileAt(i, j).isBomb;
-          console.log("update bomb: " + isBomb);
-          if (isBomb) {
-            bombCoord[0] = i;
-            bombCoord[1] = j;
-            console.log(bombCoord);
-          }
-        }
         //console.log(isBomb);
 
         if (direction == GameOptions.HORIZONTAL) {
@@ -295,43 +292,23 @@ export default class GridManager {
           j == GameOptions.OPTIONS.fieldSize - 1
         ) {
           if (colorStreak >= 3) {
-            console.log("i haz bomb: " + isBomb);
-
             let placedBomb: boolean = false;
             for (let k = 0; k < colorStreak; k++) {
-              if (isBomb && !bombed) {
-                console.log("IS BOMB");
-                for (let o = bombCoord[0] - 1; o <= bombCoord[0] + 1; o++) {
-                  for (let p = bombCoord[1] - 1; p <= bombCoord[1] + 1; p++) {
-                    console.log(o + " " + p);
-                    if (
-                      o >= 0 &&
-                      o < GameOptions.OPTIONS.fieldSize &&
-                      p >= 0 &&
-                      p < GameOptions.OPTIONS.fieldSize
-                    ) {
-                      console.log("I AM BOMBING");
-                      this.removalMap[o][p]++;
-                    }
-                  }
-                }
-              }
-
               if (direction == GameOptions.HORIZONTAL) {
                 if (colorStreak > 3 && !placedBomb) {
                   console.log("ay bomb");
-                  this.removalMap[i][startStreak + k]++;
+                  this.removalMap[i][startStreak + k].counter++;
                   placedBomb = true;
                 }
-                this.removalMap[i][startStreak + k]++;
+                this.removalMap[i][startStreak + k].counter++;
               } else {
                 if (colorStreak > 3 && !placedBomb) {
                   console.log("ay bomb");
 
-                  this.removalMap[startStreak + k][i]++;
+                  this.removalMap[startStreak + k][i].counter++;
                   placedBomb = true;
                 }
-                this.removalMap[startStreak + k][i]++;
+                this.removalMap[startStreak + k][i].counter++;
               }
             }
           }
@@ -345,13 +322,63 @@ export default class GridManager {
     }
   }
 
+  handleBombs() {
+    let i = 0;
+    let j = 0;
+    //iterate all
+    while (i < GameOptions.OPTIONS.fieldSize) {
+      j = 0;
+      while (j < GameOptions.OPTIONS.fieldSize) {
+        //check if a tile to be removed is a bomb or not
+        //if yes explode and mark a 3x3 area around the tile
+        //then reset the counter to check the whole grid from start
+        console.log(i + " " + j);
+        console.log(this.removalMap[i][j] + " " + this.gridArray[i][j].isBomb);
+
+        if (
+          this.removalMap[i][j].counter > 0 &&
+          !this.removalMap[i][j].exploded &&
+          this.gridArray[i][j].isBomb
+        ) {
+          this.removalMap[i][j].exploded = true;
+          this.explodeTiles(i, j);
+          console.log("yappari");
+          i = 0;
+          j = 0;
+        } else {
+          console.log("something wong");
+          j++;
+        }
+      }
+      i++;
+    }
+  }
+
+  explodeTiles(x: number, y: number) {
+    console.log(x + " " + y);
+    for (let i = x - 1; i <= x + 1; i++) {
+      for (let j = y - 1; j <= y + 1; j++) {
+        if (
+          i < 0 ||
+          i >= GameOptions.OPTIONS.fieldSize ||
+          j < 0 ||
+          j >= GameOptions.OPTIONS.fieldSize
+        ) {
+          continue;
+        } else if (!(i == x && j == y)) {
+          this.removalMap[i][j].counter++;
+        }
+      }
+    }
+  }
+
   destroyTiles() {
     let destroyed = 0;
     //console.log(this.removalMap);
     //console.log("la destroya");
     for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
       for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
-        let marker: number = this.removalMap[i][j];
+        let marker: number = this.removalMap[i][j].counter;
         //console.log("hey " + marker);
         if (marker > 0) {
           destroyed++;
@@ -444,6 +471,7 @@ export default class GridManager {
           );
           //console.log(this.poolArray);
           this.gridArray[i][j] = this.poolArray.pop();
+          this.gridArray[i][j].isBomb = false;
           //console.log(this.gridArray[i][j]);
           this.gridArray[i][j].setColor(randomColor);
           this.gridArray[i][j].setVisible(true);
