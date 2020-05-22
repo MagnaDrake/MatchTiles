@@ -21,7 +21,13 @@ export default class PreloadScene extends Phaser.Scene {
     });
     this.load.audio("bubblePopAudio", "Audio/Blop.mp3");
     this.load.audio("bubbleDropAudio", "Audio/highDown.ogg");
+
     this.load.spritesheet("tiles", "gems.png", {
+      frameWidth: GameOptions.OPTIONS.tileSize,
+      frameHeight: GameOptions.OPTIONS.tileSize,
+    });
+
+    this.load.spritesheet("bombs", "bomb.png", {
       frameWidth: GameOptions.OPTIONS.tileSize,
       frameHeight: GameOptions.OPTIONS.tileSize,
     });

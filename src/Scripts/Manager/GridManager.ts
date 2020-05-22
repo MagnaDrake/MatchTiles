@@ -23,7 +23,9 @@ export default class GridManager {
 
   //private removalMap: Array<Array<number>>;
 
-  private removalMap: Array<Array<{ counter: number; exploded: boolean }>>;
+  private removalMap: Array<
+    Array<{ counter: number; exploded: boolean; turnToBomb: boolean }>
+  >;
 
   public static get Instance() {
     return this.instance || (this.instance = new GridManager());
@@ -247,15 +249,25 @@ export default class GridManager {
 
     //this.removalMap = new Array<Array<number>>();
     this.removalMap = new Array<
-      Array<{ counter: number; exploded: boolean }>
+      Array<{ counter: number; exploded: boolean; turnToBomb: boolean }>
     >();
+
+    console.log(this.removalMap);
 
     for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
       //let arr = new Array<number>();
-      let arr = new Array<{ counter: number; exploded: boolean }>();
+      let arr = new Array<{
+        counter: number;
+        exploded: boolean;
+        turnToBomb: boolean;
+      }>();
       this.removalMap.push(arr);
       for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
-        this.removalMap[i].push({ counter: 0, exploded: false });
+        this.removalMap[i].push({
+          counter: 0,
+          exploded: false,
+          turnToBomb: false,
+        });
       }
     }
 
@@ -297,7 +309,8 @@ export default class GridManager {
               if (direction == GameOptions.HORIZONTAL) {
                 if (colorStreak > 3 && !placedBomb) {
                   console.log("ay bomb");
-                  this.removalMap[i][startStreak + k].counter++;
+                  //this.removalMap[i][startStreak + k].counter++;
+                  this.removalMap[i][startStreak + k].turnToBomb = true;
                   placedBomb = true;
                 }
                 this.removalMap[i][startStreak + k].counter++;
@@ -305,7 +318,9 @@ export default class GridManager {
                 if (colorStreak > 3 && !placedBomb) {
                   console.log("ay bomb");
 
-                  this.removalMap[startStreak + k][i].counter++;
+                  //this.removalMap[startStreak + k][i].counter++;
+                  this.removalMap[startStreak + k][i].turnToBomb = true;
+
                   placedBomb = true;
                 }
                 this.removalMap[startStreak + k][i].counter++;
@@ -332,8 +347,8 @@ export default class GridManager {
         //check if a tile to be removed is a bomb or not
         //if yes explode and mark a 3x3 area around the tile
         //then reset the counter to check the whole grid from start
-        console.log(i + " " + j);
-        console.log(this.removalMap[i][j] + " " + this.gridArray[i][j].isBomb);
+        //console.log(i + " " + j);
+        //console.log(this.removalMap[i][j] + " " + this.gridArray[i][j].isBomb);
 
         if (
           this.removalMap[i][j].counter > 0 &&
@@ -346,7 +361,7 @@ export default class GridManager {
           i = 0;
           j = 0;
         } else {
-          console.log("something wong");
+          //console.log("something wong");
           j++;
         }
       }
@@ -355,7 +370,7 @@ export default class GridManager {
   }
 
   explodeTiles(x: number, y: number) {
-    console.log(x + " " + y);
+    //console.log(x + " " + y);
     for (let i = x - 1; i <= x + 1; i++) {
       for (let j = y - 1; j <= y + 1; j++) {
         if (
@@ -392,7 +407,7 @@ export default class GridManager {
             callbackScope: this,
             onComplete: () => {
               destroyed--;
-              if (marker <= 1) {
+              if (!this.removalMap[i][j].turnToBomb) {
                 this.poolArray.push(targetTile);
                 targetTile.setVisible(false);
                 targetTile.isBomb = false;
@@ -407,7 +422,7 @@ export default class GridManager {
               }
             },
           });
-          if (marker <= 1) {
+          if (!this.removalMap[i][j].turnToBomb) {
             this.gridArray[i][j] = null;
           }
         }
@@ -420,6 +435,7 @@ export default class GridManager {
     this.gridArray[i][j] = targetTile;
 
     //this.gridArray[i][j].setVisible(true);
+    this.gridArray[i][j].setBomb();
     this.gridArray[i][j].alpha = 1;
     this.gridArray[i][j].isBomb = true;
   }

@@ -16,7 +16,14 @@ export default class Tile extends Phaser.GameObjects.Sprite {
   }
 
   public setColor(colorCode: number): void {
+    this.setTexture("tiles");
     this.color = colorCode;
     this.setFrame(colorCode);
+  }
+
+  public setBomb() {
+    console.log("i am now a bomb");
+    this.setTexture("bombs");
+    this.setFrame(this.color);
   }
 }
