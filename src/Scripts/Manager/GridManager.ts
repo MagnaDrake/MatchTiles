@@ -2,9 +2,9 @@ import * as Phaser from "phaser";
 import Shopee from "../Object/Shopee";
 import FpsText from "../Object/FpsText";
 import GameOptions from "../Util/GameOptions";
+import ScoreManager from "../Manager/ScoreManager";
 
 import Tile from "../Object/Tile";
-import { Grid } from "matter";
 
 export default class GridManager {
   private static instance: GridManager;
@@ -76,6 +76,8 @@ export default class GridManager {
         } while (this.isMatch(i, j));
       }
     }
+
+    //ScoreManager.Instance.updateBombCount(this.countBombs());
   }
   isMatch(row: number, col: number): boolean {
     return this.isHorizontalMatch(row, col) || this.isVerticalMatch(row, col);
@@ -510,6 +512,7 @@ export default class GridManager {
 
               //console.log("callback rep: " + rep);
               if (rep == 0) {
+                ScoreManager.Instance.updateBombCount(this.countBombs());
                 if (this.matchInGrid()) {
                   //console.log("aug");
                   //console.log(this);
@@ -539,5 +542,16 @@ export default class GridManager {
       }
     }
     return res;
+  }
+
+  countBombs(): number {
+    let bombs: number = 0;
+
+    for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
+      for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
+        if (this.gridArray[i][j].isBomb) bombs++;
+      }
+    }
+    return bombs;
   }
 }
