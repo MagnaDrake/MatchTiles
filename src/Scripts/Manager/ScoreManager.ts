@@ -2,7 +2,7 @@ import * as Phaser from "phaser";
 import GameOptions from "../Util/GameOptions";
 import Tile from "../Object/Tile";
 
-const scoreTextFormat = "Score: %1\n" + "Combo: %2\n";
+const scoreTextFormat = "Score: %1\n" + "Combo: %2\n" + "Cascade: %3\n";
 
 const debugCaptionTextFormat = "Bombs: %1";
 
@@ -39,7 +39,11 @@ export default class ScoreManager {
       scene,
       10,
       10,
-      Phaser.Utils.String.Format(scoreTextFormat, [0, 0]),
+      Phaser.Utils.String.Format(scoreTextFormat, [
+        this.score,
+        this.matchCombo,
+        this.cascadeCombo,
+      ]),
       {
         color: "white",
         fontSize: "28px",
@@ -75,7 +79,11 @@ export default class ScoreManager {
 
   private updateScoreText() {
     this.scoreText.setText(
-      Phaser.Utils.String.Format(scoreTextFormat, [this.score, this.matchCombo])
+      Phaser.Utils.String.Format(scoreTextFormat, [
+        this.score,
+        this.matchCombo,
+        this.cascadeCombo,
+      ])
     );
   }
 
@@ -121,5 +129,6 @@ export default class ScoreManager {
     this.matchCombo = 0;
     this.scoreHolder = 0;
     this.cascadeCombo = 1;
+    this.updateScoreText();
   }
 }

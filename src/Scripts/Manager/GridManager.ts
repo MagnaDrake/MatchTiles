@@ -13,6 +13,9 @@ export default class GridManager {
   private selectedTile: Tile;
 
   private gridArray: Array<Array<Tile>>;
+
+  private hintArray: Array<Tile>;
+
   private poolArray: Array<Tile>;
 
   private tileGroup: Phaser.GameObjects.Group;
@@ -31,15 +34,6 @@ export default class GridManager {
     return this.instance || (this.instance = new GridManager());
   }
 
-  drawGrid2(scene: Phaser.Scene) {
-    console.log("yeehaw");
-    let tile: Tile = new Tile(
-      scene,
-      GameOptions.OPTIONS.tileSize * 0 + GameOptions.OPTIONS.tileSize / 2,
-      GameOptions.OPTIONS.tileSize * 0 + GameOptions.OPTIONS.tileSize / 2,
-      "tiles"
-    );
-  }
   drawGrid(scene: Phaser.Scene): void {
     this.gridArray = new Array<Array<Tile>>();
     this.poolArray = new Array<Tile>();
@@ -79,6 +73,7 @@ export default class GridManager {
 
     //ScoreManager.Instance.updateBombCount(this.countBombs());
   }
+
   isMatch(row: number, col: number): boolean {
     return this.isHorizontalMatch(row, col) || this.isVerticalMatch(row, col);
   }
@@ -556,6 +551,10 @@ export default class GridManager {
             GameOptions.OPTIONS.tileSize / 2 -
             (emptySpots - i) * GameOptions.OPTIONS.tileSize;
           this.gridArray[i][j].alpha = 1;
+          //console.log(this);
+          ScoreManager.Instance.updateBombCount(this.countBombs());
+          ScoreManager.Instance.updateScore();
+
           this.scene.tweens.add({
             targets: this.gridArray[i][j],
             y:
@@ -566,18 +565,16 @@ export default class GridManager {
             onComplete: () => {
               rep--;
               //console.log("oncomplete inside replenish: " + this);
-
+              //ScoreManager.Instance.updateScore();
               //console.log("callback rep: " + rep);
               if (rep == 0) {
-                ScoreManager.Instance.updateBombCount(this.countBombs());
-                ScoreManager.Instance.updateScore();
                 if (this.matchInGrid()) {
+                  ScoreManager.Instance.incrementCascade();
                   //console.log("aug");
                   //console.log(this);
                   this.scene.time.addEvent({
                     delay: 250,
                     callback: () => {
-                      ScoreManager.Instance.incrementCascade();
                       this.handleMatches();
                     },
                   });
@@ -609,9 +606,131 @@ export default class GridManager {
 
     for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
       for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
-        if (this.gridArray[i][j].isBomb) bombs++;
+        if (this.gridArray[i][j] != null) {
+          if (this.gridArray[i][j].isBomb) {
+            bombs++;
+          }
+        }
       }
     }
     return bombs;
   }
+
+  public findHints() {
+    let foundHint: boolean = false;
+    console.log("hints please");
+    for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
+      for (let j = 0; i < GameOptions.OPTIONS.fieldSize; j++) {
+        for (let k = 0; k < 4; k++) {
+          this.swapReference(i, j, k);
+          if (this.matchInGrid) {
+            console.log("found match ya");
+            this.markHints(GameOptions.HORIZONTAL);
+            this.markHints(GameOptions.VERTICAL);
+            this.swapReference(i, j, k);
+            this.printHint();
+            return;
+          }
+          this.swapReference(i, j, k);
+        }
+      }
+    }
+    console.log("no valid moves left");
+  }
+
+  swapReference(row: number, col: number, dir: Direction) {
+    let currentTile = this.tileAt(row, col);
+    switch (dir) {
+      case Direction.Up:
+        if (row > 0) {
+          this.gridArray[row][col] = this.gridArray[row - 1][col];
+          this.gridArray[row - 1][col] = currentTile;
+        }
+        break;
+      case Direction.Right:
+        if (col < GameOptions.OPTIONS.fieldSize - 1) {
+          this.gridArray[row][col] = this.gridArray[row][col + 1];
+          this.gridArray[row][col + 1] = currentTile;
+        }
+        break;
+      case Direction.Down:
+        if (row < GameOptions.OPTIONS.fieldSize - 1) {
+          this.gridArray[row][col] = this.gridArray[row + 1][col];
+          this.gridArray[row + 1][col] = currentTile;
+        }
+        break;
+      case Direction.Left:
+        if (col > 0) {
+          this.gridArray[row][col] = this.gridArray[row][col - 1];
+          this.gridArray[row][col - 1] = currentTile;
+        }
+        break;
+    }
+  }
+
+  markHints(direction: number) {
+    this.hintArray = new Array<Tile>();
+    console.log("am mark hint");
+    for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
+      let colorStreak = 1;
+      let currentColor = -1;
+      let startStreak = 0;
+      let colorToWatch = 0;
+
+      for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
+        //console.log(isBomb);
+
+        if (direction == GameOptions.HORIZONTAL) {
+          colorToWatch = this.tileAt(i, j).color;
+        } else {
+          colorToWatch = this.tileAt(j, i).color;
+        }
+
+        if (colorToWatch == currentColor) {
+          //console.log("found streak");
+          colorStreak++;
+          //console.log(colorToWatch + " " + colorStreak);
+        }
+        console.log(colorStreak);
+        if (
+          colorToWatch != currentColor ||
+          j == GameOptions.OPTIONS.fieldSize - 1
+        ) {
+          if (colorStreak >= 3) {
+            for (let k = 0; k < colorStreak; k++) {
+              if (direction == GameOptions.HORIZONTAL) {
+                console.log(this.tileAt(i, startStreak + k));
+                this.hintArray.push(this.tileAt(i, startStreak + k));
+              } else {
+                console.log(this.tileAt(i, startStreak + k));
+
+                this.hintArray.push(this.tileAt(startStreak + k, i));
+              }
+            }
+            return;
+          }
+          startStreak = j;
+          colorStreak = 1;
+          currentColor = colorToWatch;
+          //isBomb = false;
+          //bombed = false;
+        }
+      }
+    }
+  }
+
+  printHint() {
+    console.log("please print hint");
+    console.log(this.hintArray);
+    this.hintArray.forEach((element) => {
+      console.log(element);
+    });
+  }
+}
+
+enum Direction {
+  Up,
+  Down,
+  Left,
+  Right,
 }
