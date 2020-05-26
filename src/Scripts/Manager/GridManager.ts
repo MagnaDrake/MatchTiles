@@ -156,7 +156,54 @@ export default class GridManager {
     }
   }
 
-  public startSwipe() {}
+  public startSwipe(pointer: Phaser.Input.Pointer) {
+    if (this.isDragging && this.selectedTile != null) {
+      let deltaX: number = pointer.downX - pointer.x;
+      let deltaY: number = pointer.downY - pointer.y;
+
+      let deltaRow: number = 0;
+      let deltaCol: number = 0;
+
+      if (
+        deltaX > GameOptions.OPTIONS.tileSize / 2 &&
+        Math.abs(deltaY) < GameOptions.OPTIONS.tileSize / 4
+      ) {
+        deltaCol = -1;
+      }
+
+      if (
+        deltaX < -GameOptions.OPTIONS.tileSize / 2 &&
+        Math.abs(deltaY) < GameOptions.OPTIONS.tileSize / 4
+      ) {
+        deltaCol = 1;
+      }
+
+      if (
+        deltaY > GameOptions.OPTIONS.tileSize / 2 &&
+        Math.abs(deltaX) < GameOptions.OPTIONS.tileSize / 4
+      ) {
+        deltaRow = -1;
+      }
+
+      if (
+        deltaY < -GameOptions.OPTIONS.tileSize / 2 &&
+        Math.abs(deltaX) < GameOptions.OPTIONS.tileSize / 4
+      ) {
+        deltaRow = 1;
+      }
+
+      if (deltaRow + deltaCol != 0) {
+        let pickedTile = this.tileAt(
+          this.getTileRow(this.selectedTile) + deltaRow,
+          this.getTileCol(this.selectedTile) + deltaCol
+        );
+        if (pickedTile != null) {
+          this.selectedTile.setScale(1);
+          this.swapTiles(this.selectedTile, pickedTile, true);
+        }
+      }
+    }
+  }
 
   public stopSwipe() {
     this.isDragging = false;
@@ -272,7 +319,7 @@ export default class GridManager {
         });
       }
     }
-
+    //ScoreManager.Instance.resetLine();
     this.markMatches(GameOptions.HORIZONTAL);
     this.markMatches(GameOptions.VERTICAL);
     this.handleBombs();
@@ -328,6 +375,8 @@ export default class GridManager {
                 this.removalMap[startStreak + k][i].counter++;
               }
             }
+            //ScoreManager.Instance.incrementLine();
+            ScoreManager.Instance.addScore(colorStreak, false);
           }
           startStreak = j;
           colorStreak = 1;
@@ -342,6 +391,8 @@ export default class GridManager {
   handleBombs() {
     let i = 0;
     let j = 0;
+
+    //let scoreGain = 0;
     //iterate all
     while (i < GameOptions.OPTIONS.fieldSize) {
       j = 0;
@@ -373,6 +424,8 @@ export default class GridManager {
 
   explodeTiles(x: number, y: number) {
     //console.log(x + " " + y);
+
+    let scoreGain = 0;
     for (let i = x - 1; i <= x + 1; i++) {
       for (let j = y - 1; j <= y + 1; j++) {
         if (
@@ -384,9 +437,12 @@ export default class GridManager {
           continue;
         } else if (!(i == x && j == y)) {
           this.removalMap[i][j].counter++;
+          scoreGain++;
         }
       }
     }
+
+    ScoreManager.Instance.addScore(scoreGain, true);
   }
 
   destroyTiles() {
@@ -415,6 +471,7 @@ export default class GridManager {
                 targetTile.isBomb = false;
               } else {
                 this.addBombOnGrid(i, j, targetTile);
+                this.removalMap[i][j].turnToBomb = false;
               }
               //console.log(targetTile);
               //console.log(marker);
@@ -513,16 +570,19 @@ export default class GridManager {
               //console.log("callback rep: " + rep);
               if (rep == 0) {
                 ScoreManager.Instance.updateBombCount(this.countBombs());
+                ScoreManager.Instance.updateScore();
                 if (this.matchInGrid()) {
                   //console.log("aug");
                   //console.log(this);
                   this.scene.time.addEvent({
                     delay: 250,
                     callback: () => {
+                      ScoreManager.Instance.incrementCascade();
                       this.handleMatches();
                     },
                   });
                 } else {
+                  ScoreManager.Instance.resetParameters();
                   this.canPick = true;
                   this.selectedTile = null;
                 }
