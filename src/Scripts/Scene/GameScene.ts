@@ -26,6 +26,22 @@ export default class GameScene extends Phaser.Scene {
     this.input.on("pointermove", this.gm.startSwipe, this.gm);
     this.input.on("pointerup", this.gm.stopSwipe, this.gm);
     this.input.keyboard.on("keydown-" + "H", this.gm.findHints, this.gm);
+
+    let hintText = new Phaser.GameObjects.Text(
+      this,
+      10,
+      this.cameras.main.height / 2 + 300,
+      "Tap here or press H for hint",
+      {
+        color: "white",
+        fontSize: "28px",
+      }
+    );
+    this.add.existing(hintText);
+
+    hintText.setInteractive();
+
+    hintText.on("pointerdown", this.gm.findHints, this.gm);
   }
 
   update(): void {
