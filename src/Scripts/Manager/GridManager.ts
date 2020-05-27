@@ -44,6 +44,8 @@ export default class GridManager {
 
     this.tileGroup = scene.add.group();
 
+    this.hintArray = new Array<Tile>();
+
     this.canPick = true;
 
     for (let i: number = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
@@ -542,6 +544,7 @@ export default class GridManager {
           //console.log(this.poolArray);
           this.gridArray[i][j] = this.poolArray.pop();
           this.gridArray[i][j].isBomb = false;
+          this.gridArray[i][j].setScale(1);
           //console.log(this.gridArray[i][j]);
           this.gridArray[i][j].setColor(randomColor);
           this.gridArray[i][j].setVisible(true);
@@ -616,15 +619,37 @@ export default class GridManager {
     return bombs;
   }
 
+  //hint system
+  //the entirety of this function is ugly and i have not found
+  //a simpler way
+  //it basically bruteforces through the tiles from top left
+  //and swaps the tile position within the array
+  //trying all possible moves (4 directions)
+  //it stops at the first encounter of a possible move
+  //then swaps the tile back to its original position
+  //it then stores the tiles in an array
+
+  //my research is that most match 3 games uses this approach because
+  //as long as N is < 1000 (which match 3 usually stays well under, max 9x9 grid)
+  //the efficiency is trivial
+  //however this code is very unruly and kind of hard to read
+  //and involves A LOT of nested loops within nested loops
+  //moreover this code does a lot of the same thing that the actual swap and findmatch code
+  //that concerncs the main gameplay
+  //this code just doesnt manipulate the sprites rendered in screen
+
+  //if there is no better way then it might be worth to combine the two functions into one
+
   public findHints() {
     let foundHint: boolean = false;
     console.log("hints please");
     for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
-      for (let j = 0; i < GameOptions.OPTIONS.fieldSize; j++) {
+      for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
         for (let k = 0; k < 4; k++) {
           this.swapReference(i, j, k);
-          if (this.matchInGrid) {
+          if (this.matchInGrid()) {
             console.log("found match ya");
+            this.hintArray = new Array<Tile>();
             this.markHints(GameOptions.HORIZONTAL);
             this.markHints(GameOptions.VERTICAL);
             this.swapReference(i, j, k);
@@ -640,27 +665,43 @@ export default class GridManager {
 
   swapReference(row: number, col: number, dir: Direction) {
     let currentTile = this.tileAt(row, col);
+    console.log("call for swap");
+    console.log(dir);
     switch (dir) {
       case Direction.Up:
+        console.log("enter up");
         if (row > 0) {
+          console.log("switch tile " + row + " " + col + " up");
           this.gridArray[row][col] = this.gridArray[row - 1][col];
           this.gridArray[row - 1][col] = currentTile;
         }
         break;
       case Direction.Right:
+        console.log("enter right");
+
         if (col < GameOptions.OPTIONS.fieldSize - 1) {
+          console.log("switch tile " + row + " " + col + " right");
+
           this.gridArray[row][col] = this.gridArray[row][col + 1];
           this.gridArray[row][col + 1] = currentTile;
         }
         break;
       case Direction.Down:
+        console.log("enter down");
+
         if (row < GameOptions.OPTIONS.fieldSize - 1) {
+          console.log("switch tile " + row + " " + col + " down");
+
           this.gridArray[row][col] = this.gridArray[row + 1][col];
           this.gridArray[row + 1][col] = currentTile;
         }
         break;
       case Direction.Left:
+        console.log("enter left");
+
         if (col > 0) {
+          console.log("switch tile " + row + " " + col + " left");
+
           this.gridArray[row][col] = this.gridArray[row][col - 1];
           this.gridArray[row][col - 1] = currentTile;
         }
@@ -669,7 +710,6 @@ export default class GridManager {
   }
 
   markHints(direction: number) {
-    this.hintArray = new Array<Tile>();
     console.log("am mark hint");
     for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
       let colorStreak = 1;
@@ -679,19 +719,21 @@ export default class GridManager {
 
       for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
         //console.log(isBomb);
+        //console.log("i: " + i + " | j: " + j);
 
         if (direction == GameOptions.HORIZONTAL) {
           colorToWatch = this.tileAt(i, j).color;
         } else {
           colorToWatch = this.tileAt(j, i).color;
         }
+        //console.log(colorToWatch);
 
         if (colorToWatch == currentColor) {
           //console.log("found streak");
           colorStreak++;
           //console.log(colorToWatch + " " + colorStreak);
         }
-        console.log(colorStreak);
+        //console.log(colorStreak);
         if (
           colorToWatch != currentColor ||
           j == GameOptions.OPTIONS.fieldSize - 1
@@ -699,10 +741,10 @@ export default class GridManager {
           if (colorStreak >= 3) {
             for (let k = 0; k < colorStreak; k++) {
               if (direction == GameOptions.HORIZONTAL) {
-                console.log(this.tileAt(i, startStreak + k));
+                //console.log(this.tileAt(i, startStreak + k));
                 this.hintArray.push(this.tileAt(i, startStreak + k));
               } else {
-                console.log(this.tileAt(i, startStreak + k));
+                //console.log(this.tileAt(i, startStreak + k));
 
                 this.hintArray.push(this.tileAt(startStreak + k, i));
               }
@@ -724,6 +766,8 @@ export default class GridManager {
     console.log(this.hintArray);
     this.hintArray.forEach((element) => {
       console.log(element);
+      element.setDepth(1);
+      element.setScale(1.2);
     });
   }
 }
