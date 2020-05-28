@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "build": "webpack --mode=production",
-    "start": "webpack --mode=production & node index.js",
+    "start": "node index.js",
     "dev": "webpack-dev-server --config webpack.dev.config.js --hot",
     "dev-host": "webpack-dev-server --config webpack.dev.config.js --hot --host 0.0.0.0 --disable-host-check",
     "dev-stat": "webpack --config webpack.dev.config.js --json > stats.json",

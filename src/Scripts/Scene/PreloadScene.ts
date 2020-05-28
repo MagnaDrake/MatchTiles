@@ -2,7 +2,7 @@ import GameOptions from "../Util/GameOptions";
 import FpsText from "../Object/FpsText";
 
 import shopeeImg from "../../Assets/shopee.png";
-import panelImg from "../../Assets/panel.png";
+import panelImg from "../../Assets/Panel.png";
 import replayImg from "../../Assets/Replay.png";
 import bubbleImg from "../../Assets/bubblesprite.png";
 import tilesImg from "../../Assets/gems.png";
