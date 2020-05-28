@@ -1,4 +1,3 @@
-import * as Phaser from "phaser";
 import Shopee from "../Object/Shopee";
 import FpsText from "../Object/FpsText";
 import GameOptions from "../Util/GameOptions";
@@ -6,9 +5,9 @@ import GridManager from "../Manager/GridManager";
 import ScoreManager from "../Manager/ScoreManager";
 
 export default class GameScene extends Phaser.Scene {
-  private fpsText: FpsText;
-  private gm: GridManager;
-  private sm: ScoreManager;
+  private fpsText?: FpsText;
+  private gm?: GridManager;
+  private sm?: ScoreManager;
   constructor() {
     super({ key: "GameScene" });
   }
@@ -45,6 +44,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update(): void {
-    this.fpsText.update();
+    this.fpsText?.update();
   }
 }

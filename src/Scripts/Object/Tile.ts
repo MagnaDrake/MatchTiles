@@ -1,5 +1,3 @@
-import * as Phaser from "phaser";
-
 export default class Tile extends Phaser.GameObjects.Sprite {
   public color: number;
   public markedForRemoval: boolean;
@@ -12,6 +10,7 @@ export default class Tile extends Phaser.GameObjects.Sprite {
 
     //scene.physics.add.existing(this);
     this.markedForRemoval = false;
+    this.color = 0;
     this.setInteractive();
   }
 

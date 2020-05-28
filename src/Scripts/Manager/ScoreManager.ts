@@ -1,4 +1,3 @@
-import * as Phaser from "phaser";
 import GameOptions from "../Util/GameOptions";
 import Tile from "../Object/Tile";
 

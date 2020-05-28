@@ -1,6 +1,6 @@
 import "phaser";
-import GameScene from "./Scene/GameScene";
-import PreloadScene from "./Scene/PreloadScene";
+import GameScene from "./Scripts/Scene/GameScene";
+import PreloadScene from "./Scripts/Scene/PreloadScene";
 type GameConfig = Phaser.Types.Core.GameConfig;
 
 const DEFAULT_WIDTH = 720;

@@ -1,36 +1,42 @@
-import * as Phaser from "phaser";
 import GameOptions from "../Util/GameOptions";
 import FpsText from "../Object/FpsText";
 
+import shopeeImg from "../../Assets/shopee.png";
+import panelImg from "../../Assets/panel.png";
+import replayImg from "../../Assets/Replay.png";
+import bubbleImg from "../../Assets/bubblesprite.png";
+import tilesImg from "../../Assets/gems.png";
+import bombImg from "../../Assets/bomb.png";
+
 export default class PreloadScene extends Phaser.Scene {
-  private graphics;
-  private newGraphics;
-  private loadingText;
+  private graphics?: Phaser.GameObjects.Graphics;
+  private newGraphics?: Phaser.GameObjects.Graphics;
+  private loadingText?: Phaser.GameObjects.Text;
   constructor() {
     super({ key: "PreloadScene" });
   }
 
   preload(): void {
-    this.load.path = "src/Assets/";
-    this.load.image("shopee", "shopee.png");
+    //this.load.path = "src/Assets/";
+    this.load.image("shopee", shopeeImg);
 
-    this.load.image("panel", "Panel.png");
-    this.load.image("replayButton", "Replay.png");
-    this.load.spritesheet("bubble", "bubblesprite.png", {
+    this.load.image("panel", panelImg);
+    this.load.image("replayButton", replayImg);
+    this.load.spritesheet("bubble", bubbleImg, {
       frameWidth: 180,
       frameHeight: 180,
       endFrame: 6,
       startFrame: 0,
     });
-    this.load.audio("bubblePopAudio", "Audio/Blop.mp3");
-    this.load.audio("bubbleDropAudio", "Audio/highDown.ogg");
+    //this.load.audio("bubblePopAudio", "Audio/Blop.mp3");
+    //this.load.audio("bubbleDropAudio", "Audio/highDown.ogg");
 
-    this.load.spritesheet("tiles", "gems.png", {
+    this.load.spritesheet("tiles", tilesImg, {
       frameWidth: GameOptions.OPTIONS.tileSize,
       frameHeight: GameOptions.OPTIONS.tileSize,
     });
 
-    this.load.spritesheet("bombs", "bomb.png", {
+    this.load.spritesheet("bombs", bombImg, {
       frameWidth: GameOptions.OPTIONS.tileSize,
       frameHeight: GameOptions.OPTIONS.tileSize,
     });
@@ -63,15 +69,15 @@ export default class PreloadScene extends Phaser.Scene {
     //his.scene.start("GameScene");
   }
 
-  updateBar(percentage) {
-    this.newGraphics.clear();
-    this.newGraphics.fillStyle(0x3587e2, 1);
-    this.newGraphics.fillRectShape(
+  updateBar(percentage: number) {
+    this.newGraphics?.clear();
+    this.newGraphics?.fillStyle(0x3587e2, 1);
+    this.newGraphics?.fillRectShape(
       new Phaser.Geom.Rectangle(205, 205, percentage * 390, 40)
     );
 
     percentage = percentage * 100;
-    this.loadingText.setText("Loading: " + percentage.toFixed(2) + "%");
+    this.loadingText?.setText("Loading: " + percentage.toFixed(2) + "%");
     console.log("P:" + percentage);
   }
 

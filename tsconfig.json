@@ -1,8 +1,13 @@
 {
-    "compilerOptions": {
-      "target": "es5"
-    },
-    "include": [
-      "src/Scripts/app.ts"
-    ]
-  }
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "noImplicitThis": false,
+    "sourceMap": true,
+    "module": "commonjs",
+    "target": "es5",
+    "allowJs": true
+  },
+  "include": ["./src/**/*"]
+}

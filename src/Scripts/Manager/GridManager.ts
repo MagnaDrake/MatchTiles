@@ -1,4 +1,3 @@
-import * as Phaser from "phaser";
 import Shopee from "../Object/Shopee";
 import FpsText from "../Object/FpsText";
 import GameOptions from "../Util/GameOptions";
@@ -32,6 +31,12 @@ export default class GridManager {
 
   public static get Instance() {
     return this.instance || (this.instance = new GridManager());
+  }
+
+  constructor() {
+    this.canPick = true;
+    this.isDragging = false;
+    this.selectedTile = null;
   }
 
   drawGrid(scene: Phaser.Scene): void {

@@ -2,7 +2,6 @@
 
 const webpack = require("webpack");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const CopyPlugin = require("copy-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const path = require("path");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
@@ -57,7 +56,7 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js"],
   },
   output: {
-    filename: "[name].[hash].min.js",
+    filename: "[name].[hash].js",
     path: path.resolve(__dirname, "dist"),
   },
   mode: "production",
@@ -79,14 +78,6 @@ module.exports = {
     new ScriptExtHtmlWebpackPlugin({
       defer: ["game"],
     }),
-    /*new CopyPlugin({
-      patterns: [
-        {
-          from: "src/Assets",
-          to: "../dist/Assets",
-        },
-      ],
-    }),*/
   ],
   optimization: {
     splitChunks: {
