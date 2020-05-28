@@ -73,7 +73,7 @@ module.exports = {
     new TerserPlugin(),
     new HTMLWebpackPlugin({
       title: "Phaser Game",
-      template: path.resolve(__dirname, "index.html"),
+      template: path.resolve(__dirname, "src/index.html"),
       chunks: ["game"],
     }),
     new ScriptExtHtmlWebpackPlugin({
