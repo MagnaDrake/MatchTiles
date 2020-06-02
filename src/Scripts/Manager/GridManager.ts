@@ -647,25 +647,27 @@ export default class GridManager {
 
   public findHints() {
     let foundHint: boolean = false;
-    console.log("hints please");
-    for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
-      for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
-        for (let k = 0; k < 4; k++) {
-          this.swapReference(i, j, k);
-          if (this.matchInGrid()) {
-            console.log("found match ya");
-            this.hintArray = new Array<Tile>();
-            this.markHints(GameOptions.HORIZONTAL);
-            this.markHints(GameOptions.VERTICAL);
+    if (this.canPick) {
+      console.log("hints please");
+      for (let i = 0; i < GameOptions.OPTIONS.fieldSize; i++) {
+        for (let j = 0; j < GameOptions.OPTIONS.fieldSize; j++) {
+          for (let k = 0; k < 4; k++) {
             this.swapReference(i, j, k);
-            this.printHint();
-            return;
+            if (this.matchInGrid()) {
+              console.log("found match ya");
+              this.hintArray = new Array<Tile>();
+              this.markHints(GameOptions.HORIZONTAL);
+              this.markHints(GameOptions.VERTICAL);
+              this.swapReference(i, j, k);
+              this.printHint();
+              return;
+            }
+            this.swapReference(i, j, k);
           }
-          this.swapReference(i, j, k);
         }
       }
+      console.log("no valid moves left");
     }
-    console.log("no valid moves left");
   }
 
   swapReference(row: number, col: number, dir: Direction) {
