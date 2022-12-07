@@ -48,7 +48,7 @@
     "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.18.2"
   },
   "bugs": {
     "url": "https://github.com/ArifZx/phaser3-typescript-webpack-externals-template/issues"
